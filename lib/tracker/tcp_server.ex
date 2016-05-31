@@ -11,9 +11,8 @@ defmodule Tracker.TCPServer do
                 [
                     {"/", :cowboy_static, {:priv_file, :tracker, "index.html"}},
                     {"/static/[...]", :cowboy_static, {:priv_dir,  :tracker, "static"}},
-                    #{"/ws", API.Websocket, []},
+                    {"/ws", API.Websocket, []},
                     {"/stream", API.MJPEGHandler, []},
-                    #{"/sensors", API.Sensors, []},
             ]}
         ])
         {:ok, _} = :cowboy.start_http(:http,

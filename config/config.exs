@@ -11,6 +11,9 @@ use Mix.Config
 # You can configure for your application as:
 #
 config :tracker, tcp_port: 8080
+
+config :placemeter, auth_token: System.get_env("PLACEMETER_AUTH_TOKEN")
+
 #
 # And access this configuration in your application as:
 #

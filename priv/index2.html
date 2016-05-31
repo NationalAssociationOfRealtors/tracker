@@ -6,30 +6,26 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Test</title>
         <style>
-            .messages div{
-                transition: opacity 200ms;
+            document {
+                background-color: #000000;
             }
-
-            .messages div:last-child{
-                background-color: #FF0000;
+            img{
+                width: 70%;
             }
-
         </style>
-        <link href="/static/vendor/bootstrap-3.3.6-dist/css/bootstrap.css" rel="stylesheet">
-        <link href="/static/vendor/bootstrap-3.3.6-dist/css/bootstrap-theme.css" rel="stylesheet">
-        <link href="/static/vendor/nvd3/nv.d3.min.css" rel="stylesheet">
-        <script src="/static/js/jquery-2.2.3.min.js"></script>
-        <script src="/static/vendor/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
-        <script src="/static/vendor/nvd3/d3.min.js"></script>
-        <script src="/static/vendor/nvd3/nv.d3.min.js"></script>
-        <script src="/static/js/location.js"></script>
     </head>
-    <body>
+    <body bgcolor="#000000">
         <div class="container">
-            <div class="row" id="locations"></div>
+            <div class="row" id="nodes">
+                <div class="col-md-6 location">
+                    <div id="430n-data" class="data"></div>
+                    <img id="430n" src="" />
+                </div>
+            </div>
         </div>
     </body>
     <script>
+
     var locations = [
         {type: "location", id:"430n", data:{url: "http://430n.crtlabs.org:554/cgi-bin/CGIProxy.fcgi?cmd=snapPicture2&usr=crtlabs&pwd=Abudabu1!&"}},
     ]
@@ -42,13 +38,17 @@
     ws.onclose = function(evt) {
         console.log(evt)
     };
-    var websocket = new WebSocketManager(ws);
 
     function init_locations(){
         for(var l in locations){
-            new Location(locations[l], "#locations", user_id, websocket);
+            ws.send(JSON.stringify(locations[l]));
+            setTimeout(function(){
+                document.getElementById(locations[l].id).src = "/stream?user_id="+user_id+"&location_id="+locations[l].id;
+            }, 1000);
         }
     }
+
+
 
     </script>
 </html>

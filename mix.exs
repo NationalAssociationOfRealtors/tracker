@@ -35,7 +35,8 @@ defmodule Tracker.Mixfile do
         {:poison, "~> 2.1"},
         {:cowboy, "~> 1.0"},
         {:sweet_xml, "~> 0.6.1"},
-        {:httpoison, "~> 0.8.3"}
+        {:httpoison, "~> 0.8.3"},
+        {:placemeter, github: "NationalAssociationOfRealtors/PlacemeterAPI", branch: "master"},
     ]
   end
 end

@@ -1,7 +1,7 @@
 defmodule Tracker.API.MJPEGHandler do
     require Logger
 
-    alias Tracker.Sensor.Camera
+    alias Tracker.Location
     alias Tracker.Event
     alias Tracker.Message
     @boundary "boundarydonotcross"
@@ -42,16 +42,11 @@ defmodule Tracker.API.MJPEGHandler do
 
     def init({:tcp, :http}, req, opts) do
         {method, req} = :cowboy_req.method(req)
-        {camera_id, req} = :cowboy_req.qs_val("camera_id", req)
+        {location_id, req} = :cowboy_req.qs_val("location_id", req)
         {user_id, req} = :cowboy_req.qs_val("user_id", req)
-        #camera_id = "http://430n.crtlabs.org:554/cgi-bin/CGIProxy.fcgi?cmd=snapPicture2&usr=crtlabs&pwd=Abudabu1!&"
-        Logger.info "Got: #{camera_id}"
-        camera = String.to_atom(camera_id)
-        case Process.whereis(camera) do
-            nil -> Tracker.CameraSupervisor.start_camera(%Message{:id => camera})
-            _ -> true
-        end
-        id = "#{user_id}:#{camera}"
+        Logger.info "Got: #{location_id}"
+        location = String.to_atom(location_id)
+        id = "#{user_id}:#{location}"
         Logger.info "Getting Stream for: #{id}"
         headers = [
             {"cache-control", "no-cache"},
@@ -61,7 +56,7 @@ defmodule Tracker.API.MJPEGHandler do
             {"pragma", "no-cache"},
         ]
         {:ok, req2} = :cowboy_req.chunked_reply(200, headers, req)
-        stream(camera, id)
+        stream(location, id)
         {:loop, req2, []}
     end
 
@@ -77,8 +72,8 @@ defmodule Tracker.API.MJPEGHandler do
         {:loop, req, state}
     end
 
-    def stream(camera, id) do
-        Camera.add_event_handler(camera, {Handler, id}, self)
+    def stream(location, id) do
+        Location.add_event_handler(location, {Handler, id}, self)
     end
 
     def terminate(reason, req, state) do

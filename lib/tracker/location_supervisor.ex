@@ -1,4 +1,4 @@
-defmodule Tracker.CameraSupervisor do
+defmodule Tracker.LocationSupervisor do
     use Supervisor
     require Logger
     @name __MODULE__
@@ -9,13 +9,13 @@ defmodule Tracker.CameraSupervisor do
 
     def init(:ok) do
         children = [
-            worker(Tracker.Sensor.Camera, [], restart: :transient)
+            worker(Tracker.Location, [], restart: :transient)
         ]
         supervise(children, strategy: :simple_one_for_one)
     end
 
-    def start_camera(message) do
-        Logger.info "Starting Camera #{inspect message}"
+    def start_location(message) do
+        Logger.info "Starting Location #{inspect message}"
         Supervisor.start_child(@name, [message])
     end
 end

@@ -2,14 +2,15 @@ defmodule Tracker.API.Websocket do
     @behaviour :cowboy_websocket_handler
     require Logger
 
-    alias Tracker.Camera
+    alias Tracker.Location
     alias Tracker.Event
     alias Tracker.Message
 
-    @camera "camera"
+    @location "location"
+    @stats "stats"
 
     defmodule State do
-        defstruct [:user_id, nodes: []]
+        defstruct [:user_id, locations: []]
     end
 
     defmodule Handler do
@@ -43,14 +44,15 @@ defmodule Tracker.API.Websocket do
 
     def websocket_init(_TransportName, req, _opts) do
         {user_id, req} = :cowboy_req.qs_val("user_id", req)
+        Process.send_after(self, :heartbeat, 1000)
         {:ok, req, %State{user_id: user_id}}
     end
 
     def websocket_terminate(_reason, _req, state) do
         Logger.info "Terminating Websocket #{state.user_id}"
-        Enum.each(state.nodes, fn(id) ->
+        Enum.each(state.locations, fn(id) ->
             h_id = "#{state.user_id}:#{id}"
-            Node.remove_event_handler(id, {Handler, id})
+            Location.remove_event_handler(id, {Handler, id})
         end)
         :ok
     end
@@ -67,13 +69,14 @@ defmodule Tracker.API.Websocket do
         {:ok, req, state}
     end
 
-    def handle_message(message = %Message{:type => @camera}, state) do
+    def handle_message(message = %Message{:type => @location}, state) do
         case Process.whereis(message.id) do
-            nil -> Tracker.CameraSupervisor.start_node(message)
+            nil -> Tracker.LocationSupervisor.start_location(message)
             _ -> true
         end
-
-        %State{state | :nodes => Enum.into(state.nodes, [message.id])}
+        id = "#{state.user_id}:#{message.id}"
+        Location.add_event_handler(message.id, {Handler, id}, {self, message.id})
+        %State{state | :locations => Enum.into(state.locations, [message.id])}
     end
 
     def handle_message(message = %Message{}, state) do
@@ -85,6 +88,11 @@ defmodule Tracker.API.Websocket do
 
     def websocket_info(event = %Event{}, req, state) do
         {:reply, {:text, Poison.encode!(event)}, req, state}
+    end
+
+    def websocket_info(:heartbeat, req, state) do
+        Process.send_after(self, :heartbeat, 1000)
+        {:reply, {:text, Poison.encode!(%Event{type: :heartbeat})}, req, state}
     end
 
     def websocket_info(_info, req, state) do

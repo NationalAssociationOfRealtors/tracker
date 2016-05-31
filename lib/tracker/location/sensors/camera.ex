@@ -1,15 +1,14 @@
-defmodule Tracker.Sensor.Camera do
+defmodule Tracker.Location.Sensor.Camera do
     use GenServer
     require Logger
     alias Tracker.Event
 
     defmodule State do
-        defstruct [:url, :events, image: "0", refresh: 1000]
+        defstruct [:url, :events, image: "0", refresh: 200]
     end
 
-    def start_link(message) do
-        {:ok, events} = GenEvent.start_link([])
-        GenServer.start_link(__MODULE__, [message, events], name: message.id)
+    def start_link(url, events) do
+        GenServer.start_link(__MODULE__, [url, events])
     end
 
     def add_event_handler(camera, handler, parent) do
@@ -50,8 +49,8 @@ defmodule Tracker.Sensor.Camera do
         Process.send_after(self, :image, refresh)
     end
 
-    def init([message, events]) do
-        state = %State{:url => message.id, :events => events}
+    def init([url, events]) do
+        state = %State{:url => url, :events => events}
         Logger.info("Camera Started: #{state.url}")
         get_images(state.refresh)
         {:ok, state}
