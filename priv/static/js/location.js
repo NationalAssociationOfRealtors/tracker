@@ -63,7 +63,7 @@ Location.prototype.graph = function(){
         self.chart = nv.models.lineChart()
             .margin({left: 30, right: 30})
             .useInteractiveGuideline(true)
-            .showLegend(true)
+            .showLegend(false)
             .showYAxis(true)
             .showXAxis(true)
             .noData("Waiting for stream...");
@@ -79,6 +79,16 @@ Location.prototype.graph = function(){
     });
     var self = this;
     window.requestAnimationFrame(function(ts){self.update_graph(ts)});
+    $(window).focus(function() {
+        self.reset_data();
+    });
+}
+
+Location.prototype.reset_data = function(){
+    console.log("reset data");
+    for(var k in this.events){
+        this.events[k].values = [];
+    }
 }
 
 Location.prototype.websocket = function(){
@@ -116,7 +126,7 @@ Location.prototype.onmessage = function(evnt) {
 Location.prototype.update_graph = function(ts){
     if (!this.start) this.start = ts;
     var progress = ts - this.start;
-    if(progress > 100){
+    if(progress > 400){
         this.start = ts;
         for(var k in this.last){
             var evs = false;

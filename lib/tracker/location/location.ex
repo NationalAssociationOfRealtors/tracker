@@ -20,8 +20,10 @@ defmodule Tracker.Location do
 
     def init(message = %Message{}) do
         IO.inspect message
-        pm_token = Application.get_env(:placemeter, :"auth_token_#{message.id}")
-        url = Application.get_env(:placemeter, :"camera_url_#{message.id}")
+        config = Application.get_env(:tracker, :"#{message.id}")
+        pm_token = config[:auth_token]
+        url = config[:camera_url]
+        Process.flag(:trap_exit, true)
         {:ok, events} = GenEvent.start_link([])
         {:ok, camera} = Camera.start_link(url, events)
         {:ok, pm} = Stats.start_link(pm_token, events)
@@ -35,6 +37,20 @@ defmodule Tracker.Location do
 
     def handle_call({:remove_handler, handler}, _from, state) do
         {:reply, GenEvent.remove_handler(state.events, handler, []), state}
+    end
+
+    def handle_info({:EXIT, from, reason}, state) do
+        Logger.info "EXIT"
+        IO.inspect reason
+        IO.inspect from
+        {:noreply, state}
+    end
+
+    def handle_info({e = %RuntimeError{}, error}, state) do
+        Logger.info "Runtime"
+        IO.inspect e
+        IO.inspect error
+        {:noreply, state}
     end
 
 end

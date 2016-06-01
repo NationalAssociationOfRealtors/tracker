@@ -12,6 +12,8 @@ tracker:
     build: .
     command: "mix run --no-halt"
     log_driver: "syslog"
+    volumes:
+        - .:/app
     links:
         - influxdb:influx
     ports:

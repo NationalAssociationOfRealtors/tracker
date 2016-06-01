@@ -11,6 +11,15 @@ defmodule Tracker do
     end
 
     def start(_type, _args) do
-        Tracker.Supervisor.start_link()
+        {:ok, pid} = Tracker.Supervisor.start_link()
+        start_locations
+        {:ok, pid}
+    end
+
+    def start_locations do
+        Application.get_env(:tracker, :locations) |> Enum.each(fn(location) ->
+            Tracker.LocationSupervisor.start_location(%Message{id: location})
+        end)
+
     end
 end
