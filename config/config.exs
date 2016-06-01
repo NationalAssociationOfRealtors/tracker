@@ -12,7 +12,8 @@ use Mix.Config
 #
 config :tracker, tcp_port: 8080
 
-config :placemeter, auth_token: System.get_env("PLACEMETER_AUTH_TOKEN")
+config :placemeter, auth_token_430n: System.get_env("PLACEMETER_AUTH_TOKEN_430N")
+config :placemeter, camera_url_430n: System.get_env("PLACEMETER_CAMERA_URL_430N")
 
 #
 # And access this configuration in your application as:

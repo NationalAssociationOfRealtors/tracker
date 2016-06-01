@@ -20,10 +20,11 @@ defmodule Tracker.Location do
 
     def init(message = %Message{}) do
         IO.inspect message
-        url = message.data["url"]
+        pm_token = Application.get_env(:placemeter, :"auth_token_#{message.id}")
+        url = Application.get_env(:placemeter, :"camera_url_#{message.id}")
         {:ok, events} = GenEvent.start_link([])
         {:ok, camera} = Camera.start_link(url, events)
-        {:ok, pm} = Stats.start_link(events)
+        {:ok, pm} = Stats.start_link(pm_token, events)
         Logger.info "Location: #{message.id} started"
         {:ok, %{events: events, id: message.id}}
     end

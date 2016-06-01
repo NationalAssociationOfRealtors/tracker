@@ -29,6 +29,7 @@ function Location(obj, parent, user_id, websocket){
     this.data = obj;
     this.ws = websocket;
     this.id = this.data.id;
+    this.start = null;
     this.user_id = user_id;
     this.last = {};
     this.events = [];
@@ -60,19 +61,15 @@ Location.prototype.graph = function(){
     var self = this;
     nv.addGraph(function() {
         self.chart = nv.models.lineChart()
-            .margin({left: 70, right: 20})
+            .margin({left: 30, right: 30})
             .useInteractiveGuideline(true)
             .showLegend(true)
             .showYAxis(true)
-            .showXAxis(true);
+            .showXAxis(true)
+            .noData("Waiting for stream...");
 
         self.chart.xAxis     //Chart x-axis settings
-            .axisLabel('Time (ms)')
             .tickFormat(function(d) { return d3.time.format('%X')(new Date(d*1000)); });
-
-        self.chart.yAxis     //Chart y-axis settings
-            .axisLabel('Total Objects')
-            .tickFormat(d3.format('.02f'));
 
         d3.select('#messages'+self.id+' svg')
             .datum(self.events)
@@ -80,10 +77,8 @@ Location.prototype.graph = function(){
 
         nv.utils.windowResize(function() { self.chart.update() });
     });
-
-    this.interval = setInterval(function(){
-        self.update_graph();
-    }, 500);
+    var self = this;
+    window.requestAnimationFrame(function(ts){self.update_graph(ts)});
 }
 
 Location.prototype.websocket = function(){
@@ -118,25 +113,31 @@ Location.prototype.onmessage = function(evnt) {
     }
 };
 
-Location.prototype.update_graph = function(){
-    for(var k in this.last){
-        var evs = false;
-        for(var e in this.events){
-            if(this.events[e].key == k) evs = this.events[e];
+Location.prototype.update_graph = function(ts){
+    if (!this.start) this.start = ts;
+    var progress = ts - this.start;
+    if(progress > 100){
+        this.start = ts;
+        for(var k in this.last){
+            var evs = false;
+            for(var e in this.events){
+                if(this.events[e].key == k) evs = this.events[e];
+            }
+            if(!evs){
+                evs = {key: k, values: []}
+                this.events.push(evs)
+            }
+            var cp = jQuery.extend({}, this.last[k]);
+            cp.x = new Date().getTime()/1000;
+            evs.values.push(cp);
+            if(evs.values.length > 250) evs.values.shift();
         }
-        if(!evs){
-            evs = {key: k, values: []}
-            this.events.push(evs)
-        }
-        var cp = jQuery.extend({}, this.last[k]);
-        cp.x = new Date().getTime()/1000;
-        evs.values.push(cp);
-        if(evs.values.length > 100) evs.values.shift();
+        d3.select('#messages'+this.id+' svg')
+            .datum(this.events)
+            .call(this.chart);
     }
-    console.log(this.events);
-    d3.select('#messages'+this.id+' svg')
-        .datum(this.events)
-        .call(this.chart);
+    var self = this;
+    window.requestAnimationFrame(function(ts){self.update_graph(ts)});
 }
 
 Location.prototype.send = function(type, data){

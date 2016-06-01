@@ -11,7 +11,6 @@ defmodule Tracker.Supervisor do
 
     def init(:ok) do
         children = [
-            worker(Placemeter, []),
             worker(Tracker.TCPServer, []),
             supervisor(Tracker.LocationSupervisor, [])
         ]

@@ -1,0 +1,20 @@
+influxdb:
+    image: influxdb:0.13.0
+    hostname: influx
+    log_driver: "syslog"
+    expose:
+        - "8086"
+        - "8083"
+    volumes:
+        - /nar/influx0.13.1:/var/lib/influxdb
+
+tracker:
+    build: .
+    command: "mix run --no-halt"
+    log_driver: "syslog"
+    links:
+        - influxdb:influx
+    ports:
+        - "8080:8080"
+    env_file:
+        - .env
