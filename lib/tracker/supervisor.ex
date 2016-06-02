@@ -12,6 +12,7 @@ defmodule Tracker.Supervisor do
 
     def init(:ok) do
         children = [
+            Tracker.DB.InfluxDB.child_spec,
             worker(Tracker.TCPServer, []),
             supervisor(Tracker.LocationSupervisor, [])
         ]

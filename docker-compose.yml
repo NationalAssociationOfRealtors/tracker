@@ -1,17 +1,17 @@
 influxdb:
     image: influxdb:0.13.0
     hostname: influx
-    log_driver: "syslog"
-    expose:
-        - "8086"
-        - "8083"
+    log_driver: syslog
+    ports:
+        - "8086:8086"
+        - "8083:8083"
     volumes:
         - /nar/influx0.13.1:/var/lib/influxdb
 
 tracker:
     build: .
     command: "mix run --no-halt"
-    log_driver: "syslog"
+    log_driver: syslog
     volumes:
         - .:/app
     links:

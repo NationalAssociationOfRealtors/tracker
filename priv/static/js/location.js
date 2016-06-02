@@ -107,15 +107,16 @@ Location.prototype.onmessage = function(evnt) {
         case "stats":
             for(var mp in evnt.value){
                 var ts = 0;
-                for(var ts in evnt.value[mp]){
-                    var ev = evnt.value[mp][ts];
+                var mes = evnt.value[mp];
+                for(var ts in evnt.value[mp].data){
+                    var ev = evnt.value[mp].data[ts];
                     var tot = 0;
-                    for(var k in ev.data.all){
-                        if(ev.data.all[k]) tot+= ev.data.all[k];
+                    for(var k in ev.all){
+                        if(ev.all[k]) tot+= ev.all[k];
                     }
-                    if(ev.data.timestamp > ts && tot){
-                        this.last[ev.name] = {x: ev.data.timestamp, y: tot};
-                        ts = ev.data.timestamp;
+                    if(ev.timestamp > ts && tot){
+                        this.last[mes.name] = {x: ev.timestamp, y: tot};
+                        ts = ev.timestamp;
                     }
                 }
             }

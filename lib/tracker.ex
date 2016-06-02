@@ -12,8 +12,15 @@ defmodule Tracker do
 
     def start(_type, _args) do
         {:ok, pid} = Tracker.Supervisor.start_link()
+        create_database
         start_locations
         {:ok, pid}
+    end
+
+    def create_database do
+        Tracker.DB.InfluxDB.create_database
+        Tracker.DB.InfluxDB.create_retention_policies
+        Tracker.DB.InfluxDB.create_continuous_queries
     end
 
     def start_locations do

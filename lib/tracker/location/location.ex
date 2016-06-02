@@ -5,6 +5,7 @@ defmodule Tracker.Location do
     alias Tracker.Message
     alias Tracker.Location.Sensor.Camera
     alias Tracker.Location.Sensor.Placemeter, as: Stats
+    alias Tracker.Location.StatsLogger
 
     def start_link(message = %Message{}) do
         GenServer.start_link(__MODULE__, message, name: message.id)
@@ -27,6 +28,7 @@ defmodule Tracker.Location do
         {:ok, events} = GenEvent.start_link([])
         {:ok, camera} = Camera.start_link(url, events)
         {:ok, pm} = Stats.start_link(pm_token, events)
+        GenEvent.add_mon_handler(events, StatsLogger, [])
         Logger.info "Location: #{message.id} started"
         {:ok, %{events: events, id: message.id}}
     end
