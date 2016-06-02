@@ -114,7 +114,7 @@ Location.prototype.onmessage = function(evnt) {
                         if(ev.data.all[k]) tot+= ev.data.all[k];
                     }
                     if(ev.data.timestamp > ts && tot){
-                        this.last[ev.id] = {x: ev.data.timestamp, y: tot};
+                        this.last[ev.name] = {x: ev.data.timestamp, y: tot};
                         ts = ev.data.timestamp;
                     }
                 }
