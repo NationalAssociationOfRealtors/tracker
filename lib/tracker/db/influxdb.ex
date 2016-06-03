@@ -21,6 +21,16 @@ defmodule Tracker.DB.InfluxDB do
         )
     end
 
+    def wait_till_up do
+        case ping do
+            :pong -> :ok
+            :error ->
+                Logger.info "waiting for influxdb to come up..."
+                :timer.sleep(300)
+                wait_till_up
+        end
+    end
+
     def create_database do
         "#{@db}"
             |> Instream.Admin.Database.create()

@@ -18,6 +18,7 @@ defmodule Tracker do
     end
 
     def create_database do
+        Tracker.DB.InfluxDB.wait_till_up
         Tracker.DB.InfluxDB.create_database
         Tracker.DB.InfluxDB.create_retention_policies
         Tracker.DB.InfluxDB.create_continuous_queries

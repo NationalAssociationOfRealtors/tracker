@@ -5,6 +5,8 @@ defmodule Tracker.Location.StatsLogger do
     alias Tracker.Event
     alias Tracker.DB.InfluxDB.DataPoint
 
+    @default_type "turnstile"
+
     def handle_event(event = %Event{type: :stats}, state) do
         Enum.flat_map(event.value, fn(p) ->
             Enum.flat_map(p.classes, fn(class) ->
@@ -13,7 +15,7 @@ defmodule Tracker.Location.StatsLogger do
                     d2 = Map.get(d[class], "direction_2")
                     dir1 = if d1, do: d1, else: 0
                     dir2 = if d2, do: d2, else: 0
-                    type = if p.type, do: p.type, else: "turnstile"
+                    type = if p.type, do: p.type, else: @default_type
                     %DataPoint{
                         timestamp: d["timestamp"],
                         tags: %{
