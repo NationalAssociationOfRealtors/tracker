@@ -25,26 +25,6 @@ defmodule Tracker.Location.Sensor.Camera do
         end
     end
 
-    def handle_info(event = %HTTPoison.AsyncStatus{}, state) do
-        IO.inspect event
-        {:noreply, state}
-    end
-
-    def handle_info(event = %HTTPoison.AsyncHeaders{}, state) do
-        IO.inspect event
-        {:noreply, state}
-    end
-
-    def handle_info(event = %HTTPoison.AsyncChunk{}, state) do
-        IO.inspect event
-        {:noreply, state}
-    end
-
-    def handle_info(event = %HTTPoison.AsyncEnd{}, state) do
-        IO.inspect event
-        {:noreply, state}
-    end
-
     def get_images(refresh) do
         Process.send_after(self, :image, refresh)
     end
@@ -61,10 +41,6 @@ defmodule Tracker.Location.Sensor.Camera do
         GenEvent.notify(state.events, %Event{:type => :image, :value => new_state.image})
         get_images(state.refresh)
         {:noreply, new_state}
-    end
-
-    def handle_call({:add_handler, handler, parent}, _from, state) do
-        {:reply, GenEvent.add_mon_handler(state.events, handler, parent), state}
     end
 
 end
