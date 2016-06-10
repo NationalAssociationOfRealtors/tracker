@@ -39,14 +39,10 @@ function Location(obj, parent, user_id, websocket){
 }
 
 Location.prototype.dom = function(parent){
-    var elem = "<div class=\"col-sm-6 col-md-6\"> \
-            <div class=\"thumbnail\"> \
-                <img id=\"stream"+this.id+"\"> \
-                <div class=\"caption\"> \
-                    <div class=\"messages\" id=\"messages"+this.id+"\"><svg></svg></div> \
-                </div> \
-            </div> \
-        </div>";
+    var elem = "<div class=\"location\"> \
+                    <img id=\"stream"+this.id+"\"> \
+                    <div class=\"messages\" id=\"messages"+this.id+"\"></div> \
+                </div>";
     var self = this;
     $(parent).append(elem);
     $("#on"+this.id).click(function(){
@@ -59,29 +55,61 @@ Location.prototype.dom = function(parent){
 
 Location.prototype.graph = function(){
     var self = this;
-    nv.addGraph(function() {
-        self.chart = nv.models.lineChart()
-            .margin({left: 30, right: 30})
-            .useInteractiveGuideline(true)
-            .showLegend(false)
-            .showYAxis(true)
-            .showXAxis(true)
-            .noData("Waiting for stream...");
+    this.context = cubism.context() // set the cubism context
+        .serverDelay(0) // No server delay
+        .clientDelay(0) // No client delay
+        .step(1000) // step once ever second
+        .size(800); // and make the horizon div 960 px wide.
 
-        self.chart.xAxis     //Chart x-axis settings
-            .tickFormat(function(d) { return d3.time.format('%X')(new Date(d*1000)); });
-
-        d3.select('#messages'+self.id+' svg')
-            .datum(self.events)
-            .call(self.chart);
-
-        nv.utils.windowResize(function() { self.chart.update() });
+    d3.select("#messages"+this.id).call(function (div) {
+        div.append("div")
+            .attr("class", "axis")
+            .call(self.context.axis().orient("top"));
+        div.append("div")
+            .attr("class", "rule")
+            .call(self.context.rule());
     });
+
+    this.context.on("focus", function (i) {
+        self.align_values(i);
+    });
+}
+
+Location.prototype.align_values = function(i) {
     var self = this;
-    window.requestAnimationFrame(function(ts){self.update_graph(ts)});
-    $(window).focus(function() {
-        self.reset_data();
-    });
+    d3.selectAll(".value").each(function (index, d, k) {
+        for (l = 0; l < self.events.length; l++) {
+            if ($(this).text().replace("−", "-") == self.events[l].value) {
+                $(this).text(self.events[l].name);
+            }
+        }
+    }).style("right", i == null ? null : self.context.size() - i + 10 + "px");
+}
+
+Location.prototype.update_data = function(){
+    d3.select("#messages"+this.id).selectAll(".horizon")
+        .data(this.events)
+        .enter()
+        .append("div")
+        .attr("class", "horizon")
+        .call(this.context.horizon().extent([-20, 20]));
+}
+
+Location.prototype.create_metric = function(ev){
+    var self = this;
+    var values = [],
+        value = 0,
+        last;
+    this.last[ev.type] = ev.value;
+    return this.context.metric(function (start, stop, step, callback) {
+        start = +start, stop = +stop;
+        if (isNaN(last)) last = start;
+        while (last < stop) {
+            last += step;
+            values.push(self.last[ev.type]);
+        }
+        callback(null, values = values.slice((start - stop) / step)); //And execute the callback function
+    }, ev.type);
 }
 
 Location.prototype.reset_data = function(){
@@ -115,12 +143,17 @@ Location.prototype.onmessage = function(evnt) {
                         if(ev.all[k]) tot+= ev.all[k];
                     }
                     if(ev.timestamp > ts && tot){
-                        this.last[mes.name] = {x: ev.timestamp, y: tot};
+                        if(!(mes.name in this.last)){
+                            this.events.push(this.create_metric({type:mes.name, value:tot}));
+                            this.update_data();
+                        }else{
+                            this.last[mes.name] = tot;
+                        }
                         ts = ev.timestamp;
                     }
                 }
             }
-            this.update_graph();
+            //this.update_graph();
     }
 };
 
@@ -162,26 +195,6 @@ Location.prototype.on = function(){
 
 Location.prototype.off = function(){
     this.send("light", "off");
-}
-
-Location.prototype.display_event = function(evnt){
-    if(evnt.type == "node_message" || evnt.type == "response") return;
-    var messages = document.getElementById("messages"+this.id);
-    var len = messages.childNodes.length;
-    if(len > this.events.length) messages.removeChild(messages.firstChild);
-
-    var v = evnt.data.all;
-    try{
-        v = JSON.stringify(v);
-    }catch(e){
-        v = v;
-    }
-    var e = document.createElement("div");
-    e.innerHTML = evnt.id+": "+v;
-    messages.appendChild(e);
-    e.style.opacity = 0;
-    window.getComputedStyle(e).opacity;
-    e.style.opacity = 1;
 }
 
 Location.prototype.stream = function(){
