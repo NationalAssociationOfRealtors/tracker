@@ -56,9 +56,9 @@ Location.prototype.dom = function(parent){
 Location.prototype.graph = function(){
     var self = this;
     this.context = cubism.context() // set the cubism context
-        .serverDelay(0) // No server delay
+        .serverDelay(60) // No server delay
         .clientDelay(0) // No client delay
-        .step(1000) // step once ever second
+        .step(20000) // step once ever second
         .size(800); // and make the horizon div 960 px wide.
 
     d3.select("#messages"+this.id).call(function (div) {

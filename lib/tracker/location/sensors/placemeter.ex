@@ -22,8 +22,11 @@ defmodule Tracker.Location.Sensor.Placemeter do
     end
 
     def handle_info(:stats, state) do
-        {:ok, res} = Placemeter.measurementpoints(state.pm, 60)
-        GenEvent.notify(state.events, %Event{type: :stats, value: res})
+        case Placemeter.measurementpoints(state.pm, 60) do
+            {:ok, res} ->
+                GenEvent.notify(state.events, %Event{type: :stats, value: res})
+            other -> Logger.info "#{inspect other}"
+        end
         Process.send_after(self, :stats, @refresh)
         {:noreply, state}
     end
