@@ -40,7 +40,7 @@ defmodule Tracker.DB.InfluxDB do
     def create_retention_policies do
         Instream.Admin.RetentionPolicy.create(
             "one_minute", @db, "30d", 1, true
-        ) |> execute()
+        ) |> execute() #default
 
         Instream.Admin.RetentionPolicy.create(
             "ten_minute", @db, "180d", 1

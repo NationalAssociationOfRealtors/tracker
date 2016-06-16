@@ -33,9 +33,32 @@ function Location(obj, parent, user_id, websocket){
     this.user_id = user_id;
     this.last = {};
     this.events = [];
+    this.historical_data = {};
     this.dom(parent);
     this.graph();
+    this.historical();
     this.websocket();
+}
+
+Location.prototype.historical = function(){
+    var self = this;
+    $.get("/location", function(data){
+        for(var series in data){
+            var values = [];
+            var s = data[series];
+            for(var p in s.values){
+                var v = s.values[p]
+                values.push({timestamp: new Date(v[0]).getTime(), value: (v[1]+v[2])});
+            }
+            self.historical_data[s.tags.id] = values;
+            if(!(s.tags.id in self.last)){
+                var v1 = self.historical_data[s.tags.id][0];
+                var ev = {type: s.tags.id, value: (v1.value)};
+                self.events.push(self.create_metric(ev));
+            }
+        }
+        self.update_data();
+    });
 }
 
 Location.prototype.dom = function(parent){
@@ -95,6 +118,14 @@ Location.prototype.update_data = function(){
         .call(this.context.horizon().extent([-20, 20]));
 }
 
+Location.prototype.get_historical = function(type, timestamp){
+    for(var i in this.historical_data[type]){
+        var v = this.historical_data[type][i];
+        if(v.timestamp >= timestamp) return v.value;
+    }
+    return false;
+}
+
 Location.prototype.create_metric = function(ev){
     var self = this;
     var values = [],
@@ -105,8 +136,11 @@ Location.prototype.create_metric = function(ev){
         start = +start, stop = +stop;
         if (isNaN(last)) last = start;
         while (last < stop) {
+            var v = self.last[ev.type];
+            var hs = self.get_historical(ev.type, last);
+            if(hs !== false) v = hs;
+            values.push(v);
             last += step;
-            values.push(self.last[ev.type]);
         }
         callback(null, values = values.slice((start - stop) / step)); //And execute the callback function
     }, ev.type);
