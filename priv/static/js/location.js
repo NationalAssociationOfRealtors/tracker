@@ -177,11 +177,11 @@ Location.prototype.onmessage = function(evnt) {
                         if(ev.all[k]) tot+= ev.all[k];
                     }
                     if(ev.timestamp > ts && tot){
-                        if(!(mes.name in this.last)){
+                        if(!(mes.id in this.last)){
                             this.events.push(this.create_metric({type:mes.name, value:tot}));
                             this.update_data();
                         }else{
-                            this.last[mes.name] = tot;
+                            this.last[mes.id] = tot;
                         }
                         ts = ev.timestamp;
                     }
