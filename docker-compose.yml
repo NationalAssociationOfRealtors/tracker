@@ -10,7 +10,7 @@ influxdb:
 
 tracker:
     build: .
-    command: "mix run --no-halt"
+    entrypoint: "/app/run.sh"
     log_driver: syslog
     volumes:
         - .:/app

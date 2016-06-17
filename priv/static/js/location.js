@@ -53,7 +53,7 @@ Location.prototype.historical = function(){
             self.historical_data[s.tags.id] = values;
             if(!(s.tags.id in self.last)){
                 var v1 = self.historical_data[s.tags.id][0];
-                var ev = {type: s.tags.id, value: (v1.value)};
+                var ev = {type: s.tags.id, value: v1.value, description: s.description};
                 self.events.push(self.create_metric(ev));
             }
         }
@@ -143,7 +143,7 @@ Location.prototype.create_metric = function(ev){
             last += step;
         }
         callback(null, values = values.slice((start - stop) / step)); //And execute the callback function
-    }, ev.type);
+    }, ev.description);
 }
 
 Location.prototype.reset_data = function(){
