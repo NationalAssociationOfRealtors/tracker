@@ -11,7 +11,7 @@ defmodule Tracker.API.Location do
 
     def init({:tcp, :http}, req, opts) do
         {user_id, req} = :cowboy_req.qs_val("user_id", req)
-        {:ok, mp} = :dets.open_file(:mp_dets, [file: @measurement_points, type: :set])
+        {:ok, mp} = :dets.open_file(:mp_dets, [type: :set])
         {:ok, req, %State{:user => user_id, :mp => mp}}
     end
 
