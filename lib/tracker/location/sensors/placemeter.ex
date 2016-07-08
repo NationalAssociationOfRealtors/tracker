@@ -18,7 +18,10 @@ defmodule Tracker.Location.Sensor.Placemeter do
     def init([token, events]) do
         Logger.info "Token: #{token}"
         {:ok, pm} = Placemeter.start_link(token)
-        {:ok, mp} = :dets.open_file(:mp_dets, [file: @measurement_points, type: :set])
+        case :dets.open_file(:mp_dets, [file: @measurement_points, type: :set]) do
+            {:ok, mp} -> :ok
+            other -> IO.inspect other
+        end
         Process.send_after(self, :stats, 1000)
         {:ok, %State{events: events, placemeter: pm, mp: mp}}
     end
