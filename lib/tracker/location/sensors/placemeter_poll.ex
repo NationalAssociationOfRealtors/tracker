@@ -19,10 +19,18 @@ defmodule Tracker.Location.Sensor.PlacemeterPoll do
         Logger.info "Token: #{token}"
         {:ok, pm} = Placemeter.start_link(token)
         Logger.info("Placemeter started")
-        mp = case :dets.open_file(:mp_dets, [file: @measurement_points, type: :set]) do
-            {:ok, mp} -> mp
-            {:error, reason} -> Logger.info(reason)
-        end
+        Logger.info("Opening File #{@measurement_points}")
+        mp =
+            case :dets.open_file(:mp_dets, [type: :set]) do
+                {:ok, mp} ->
+                    Logger.info("DETS File opened")
+                    mp
+                {:error, reason} ->
+                    Logger.info("ERROR Opening DETS file: ")
+                    Logger.info(reason)
+                other ->
+                    IO.inspect other
+            end
         Process.send_after(self, :stats, 1000)
         {:ok, %State{events: events, placemeter: pm, mp: mp}}
     end
