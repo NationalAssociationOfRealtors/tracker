@@ -2,9 +2,9 @@ influxdb:
     image: influxdb:0.13.0
     hostname: influx
     log_driver: syslog
-    ports:
-        - "8086:8086"
-        - "8083:8083"
+    expose:
+        - "8086"
+        - "8083"
     volumes:
         - /nar/influx0.13.1:/var/lib/influxdb
 
