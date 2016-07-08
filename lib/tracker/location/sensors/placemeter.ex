@@ -20,7 +20,7 @@ defmodule Tracker.Location.Sensor.Placemeter do
         {:ok, pm} = Placemeter.start_link(token)
         mp = case :dets.open_file(:mp_dets, [file: @measurement_points, type: :set]) do
             {:ok, mp} -> mp
-            other -> IO.inspect other
+            {:error, reason} -> Logger.info(reason)
         end
         Process.send_after(self, :stats, 1000)
         {:ok, %State{events: events, placemeter: pm, mp: mp}}
