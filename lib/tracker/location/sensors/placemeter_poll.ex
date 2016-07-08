@@ -1,4 +1,4 @@
-defmodule Tracker.Location.Sensor.Placemeter do
+defmodule Tracker.Location.Sensor.PlacemeterPoll do
     use GenServer
     require Logger
 
@@ -18,6 +18,7 @@ defmodule Tracker.Location.Sensor.Placemeter do
     def init([token, events]) do
         Logger.info "Token: #{token}"
         {:ok, pm} = Placemeter.start_link(token)
+        Logger.info("Placemeter started")
         mp = case :dets.open_file(:mp_dets, [file: @measurement_points, type: :set]) do
             {:ok, mp} -> mp
             {:error, reason} -> Logger.info(reason)

@@ -1,7 +1,7 @@
 influxdb:
     image: influxdb:0.13.0
     hostname: influx
-    log_driver: syslog
+    #log_driver: syslog
     expose:
         - "8086"
         - "8083"
@@ -11,7 +11,7 @@ influxdb:
 tracker:
     build: .
     entrypoint: "/app/run.sh"
-    log_driver: syslog
+    #log_driver: syslog
     volumes:
         - .:/app
     links:

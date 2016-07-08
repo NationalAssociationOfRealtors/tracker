@@ -4,7 +4,7 @@ defmodule Tracker.Location do
 
     alias Tracker.Message
     alias Tracker.Location.Sensor.Camera
-    alias Tracker.Location.Sensor.Placemeter, as: Stats
+    alias Tracker.Location.Sensor.PlacemeterPoll
     alias Tracker.Location.StatsLogger
 
     def start_link(message = %Message{}) do
@@ -27,7 +27,7 @@ defmodule Tracker.Location do
         Process.flag(:trap_exit, true)
         {:ok, events} = GenEvent.start_link([])
         {:ok, camera} = Camera.start_link(url, events)
-        {:ok, pm} = Stats.start_link(pm_token, events)
+        {:ok, pm} = PlacemeterPoll.start_link(pm_token, events)
         GenEvent.add_mon_handler(events, StatsLogger, [])
         Logger.info "Location: #{message.id} started"
         {:ok, %{events: events, id: message.id}}
